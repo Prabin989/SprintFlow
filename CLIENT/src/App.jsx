@@ -1,45 +1,28 @@
-import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Header from './components/layout/Header.jsx';
-import TaskBoard from './components/board/TaskBoard.jsx';
-import Spinner from './components/common/Spinner.jsx';
+import Layout from './components/layout/Layout.jsx';
 
-const API_URL = 'http://localhost:3000/tasks';
+import Dashboard from './pages/Dashboard.jsx';
+
+import TaskList from './pages/TaskList.jsx';
+
+import Categories from './pages/Categories.jsx';
+
+// We will build these pages next
+const NotFound = () => <div className="page-container"><h2>404 - Page Not Found</h2></div>;
 
 function App() {
-  const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(API_URL);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
-      setTasks(data.tasks);
-    } catch (err) {
-      console.error('Error fetching tasks:', err);
-      setError('Failed to load tasks. Ensure the API is running on http://localhost:3000');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="app-container">
-      <Header />
-      <main className="main-content">
-        {error && <div className="error-banner">{error}</div>}
-        <TaskBoard tasks={tasks} />
-      </main>
-      {isLoading && <Spinner />}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="tasks" element={<TaskList />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
