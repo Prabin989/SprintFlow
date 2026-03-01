@@ -1,19 +1,18 @@
 import { Selector } from 'testcafe';
 
-fixture `Task Management React Client Tests`
-    .page `http://localhost:5173`;
+fixture`Task Management React Client Tests`
+    .page`http://localhost:5173`;
 
-test('App should load and display the UI structure', async t => {
-    await t.expect(Selector('h1').innerText).eql('TaskFlow');
-    await t.expect(Selector('#col-pending').exists).ok();
-    await t.expect(Selector('#col-in-progress').exists).ok();
-    await t.expect(Selector('#col-completed').exists).ok();
+test('App should load and display the Dashboard UI', async t => {
+    await t.expect(Selector('h1').innerText).eql('SprintFlow');
+    await t.expect(Selector('.stats-grid').exists).ok();
+    await t.expect(Selector('.stat-card').count).eql(4);
 });
 
-test('App should fetch and display tasks', async t => {
-    const pendingList = Selector('#list-completed .task-card');
-    await t.expect(pendingList.count).gt(0, 'Should load tasks from API');
+test('App should fetch and display priority tasks', async t => {
+    const taskCards = Selector('.simple-task-list .simple-task-item');
+    await t.expect(taskCards.count).gt(0, 'Should load high-priority tasks from API');
 
-    const firstTaskTitle = Selector('#list-completed .task-card .task-title').nth(0);
-    await t.expect(firstTaskTitle.innerText).notEql('');
+    const firstTaskTitle = taskCards.nth(0).find('strong');
+    await t.expect(firstTaskTitle.exists).ok();
 });

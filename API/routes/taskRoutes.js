@@ -17,6 +17,7 @@ router.get('/', TaskController.getAll);
  * @api {get} /tasks/:id Get task by ID
  * @apiName GetTask
  * @apiGroup Tasks
+ * @apiParam {Number} id Task unique ID.
  */
 router.get('/:id', TaskController.getById);
 
@@ -31,6 +32,7 @@ router.post('/', TaskController.create);
  * @api {put} /tasks/:id Update a task
  * @apiName UpdateTask
  * @apiGroup Tasks
+ * @apiParam {Number} id Task unique ID.
  */
 router.put('/:id', TaskController.update);
 
@@ -38,6 +40,7 @@ router.put('/:id', TaskController.update);
  * @api {delete} /tasks/:id Delete task
  * @apiName DeleteTask
  * @apiGroup Tasks
+ * @apiParam {Number} id Task unique ID.
  */
 router.delete('/:id', TaskController.delete);
 

@@ -16,6 +16,7 @@ router.get('/', CategoryController.getAll);
  * @api {get} /categories/:id Get category by ID
  * @apiName GetCategory
  * @apiGroup Categories
+ * @apiParam {Number} id Category unique ID.
  */
 router.get('/:id', CategoryController.getById);
 
@@ -30,6 +31,7 @@ router.post('/', CategoryController.create);
  * @api {put} /categories/:id Update category
  * @apiName UpdateCategory
  * @apiGroup Categories
+ * @apiParam {Number} id Category unique ID.
  */
 router.put('/:id', CategoryController.update);
 
@@ -37,6 +39,7 @@ router.put('/:id', CategoryController.update);
  * @api {delete} /categories/:id Delete category
  * @apiName DeleteCategory
  * @apiGroup Categories
+ * @apiParam {Number} id Category unique ID.
  */
 router.delete('/:id', CategoryController.delete);
 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { FiPlus, FiFilter } from 'react-icons/fi';
+import { useLocation } from 'react-router-dom';
+import { FiPlus, FiFilter, FiSearch } from 'react-icons/fi';
 import Spinner from '../components/common/Spinner';
 import TaskCard from '../components/common/TaskCard.jsx';
 import TaskForm from '../components/forms/TaskForm.jsx';
+import DeleteConfirmation from '../components/common/DeleteConfirmation.jsx';
 
 function TaskList() {
     const [tasks, setTasks] = useState([]);
@@ -12,9 +14,17 @@ function TaskList() {
 
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [deletingTask, setDeletingTask] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const location = useLocation();
+    const [highlight, setHighlight] = useState(null);
+    const [hasScrolled, setHasScrolled] = useState(false);
+    const highlightTaskId = location.state?.highlightTaskId || null;
 
     const fetchTasksAndCategories = async () => {
         setIsLoading(true);
@@ -48,15 +58,45 @@ function TaskList() {
         fetchTasksAndCategories();
     }, [statusFilter, priorityFilter]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this task?')) return;
+    useEffect(() => {
+        if (highlightTaskId && tasks.length > 0 && !hasScrolled) {
+            setHighlight(highlightTaskId);
+            setHasScrolled(true);
+
+            setTimeout(() => {
+                const element = document.getElementById(`task-${highlightTaskId}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+
+            const timer = setTimeout(() => {
+                setHighlight(null);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [tasks, highlightTaskId, hasScrolled]);
+
+    const handleDeleteClick = (task) => {
+        setDeletingTask(task);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingTask) return;
+        setIsDeleting(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/tasks/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/tasks/${deletingTask.id}`, {
                 method: 'DELETE',
             });
-            if (response.ok) fetchTasksAndCategories();
+            if (response.ok) {
+                setDeletingTask(null);
+                fetchTasksAndCategories();
+            }
         } catch (err) {
             alert('Failed to delete task');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -75,6 +115,11 @@ function TaskList() {
         fetchTasksAndCategories();
     };
 
+    const filteredTasks = tasks.filter(task =>
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
     if (isLoading && tasks.length === 0) return <Spinner />;
 
     return (
@@ -91,7 +136,17 @@ function TaskList() {
 
             {error && <div className="error-banner">{error}</div>}
 
-            <div className="filters-bar">
+            <div className="filters-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                <div className="filter-group" style={{ flex: '1', minWidth: '200px' }}>
+                    <FiSearch />
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%' }}
+                    />
+                </div>
                 <div className="filter-group">
                     <FiFilter />
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -110,15 +165,17 @@ function TaskList() {
             </div>
 
             <div className="task-grid">
-                {tasks.length === 0 ? (
+                {filteredTasks.length === 0 ? (
                     <div className="empty-state">No tasks found matching these filters.</div>
                 ) : (
-                    tasks.map(task => (
+                    filteredTasks.map(task => (
                         <TaskCard
                             key={task.id}
                             task={task}
-                            onDelete={handleDelete}
+                            categories={categories}
+                            onDelete={handleDeleteClick}
                             onEdit={handleOpenForm}
+                            isHighlighted={highlight === task.id}
                         />
                     ))
                 )}
@@ -130,6 +187,16 @@ function TaskList() {
                     categories={categories}
                     onSave={handleSaveSuccess}
                     onCancel={handleCloseForm}
+                />
+            )}
+
+            {deletingTask && (
+                <DeleteConfirmation
+                    title="Delete Task"
+                    message={`Are you sure you want to permanently delete "${deletingTask.title}"? This action cannot be undone.`}
+                    isDeleting={isDeleting}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeletingTask(null)}
                 />
             )}
         </div>

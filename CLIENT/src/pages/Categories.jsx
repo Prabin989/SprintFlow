@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import Spinner from '../components/common/Spinner';
 import CategoryForm from '../components/forms/CategoryForm.jsx';
+import DeleteConfirmation from '../components/common/DeleteConfirmation.jsx';
 
 function Categories() {
     const [categories, setCategories] = useState([]);
@@ -10,6 +11,9 @@ function Categories() {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [deletingCategory, setDeletingCategory] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState(null);
 
     const fetchCategories = async () => {
         setIsLoading(true);
@@ -29,20 +33,30 @@ function Categories() {
         fetchCategories();
     }, []);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure? This will fail if tasks belong to this category.')) return;
+    const handleDeleteClick = (category) => {
+        setDeleteError(null);
+        setDeletingCategory(category);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingCategory) return;
+        setIsDeleting(true);
+        setDeleteError(null);
         try {
-            const response = await fetch(`http://localhost:3000/api/categories/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/categories/${deletingCategory.id}`, {
                 method: 'DELETE',
             });
             if (response.ok) {
+                setDeletingCategory(null);
                 fetchCategories();
             } else {
                 const data = await response.json();
-                alert(`Error: ${data.error}`);
+                setDeleteError(data.error || 'Failed to delete category');
             }
         } catch (err) {
-            alert('Failed to delete category');
+            setDeleteError('Network error: Failed to delete category');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -98,7 +112,7 @@ function Categories() {
                             <button
                                 className="icon-btn delete-btn"
                                 title="Delete Category"
-                                onClick={() => handleDelete(cat.id)}
+                                onClick={() => handleDeleteClick(cat)}
                             >
                                 <FiTrash2 />
                             </button>
@@ -115,6 +129,17 @@ function Categories() {
                     category={editingCategory}
                     onSave={handleSaveSuccess}
                     onCancel={handleCloseForm}
+                />
+            )}
+
+            {deletingCategory && (
+                <DeleteConfirmation
+                    title="Delete Category"
+                    message={`Are you sure you want to delete the "${deletingCategory.name}" category? This will fail if there are any tasks currently assigned to it.`}
+                    isDeleting={isDeleting}
+                    error={deleteError}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeletingCategory(null)}
                 />
             )}
         </div>

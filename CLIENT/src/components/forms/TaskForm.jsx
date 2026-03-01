@@ -68,8 +68,8 @@ function TaskForm({ task, categories, onSave, onCancel }) {
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-overlay" onClick={onCancel}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2>{task ? 'Edit Task' : 'New Task'}</h2>
                     <button className="close-btn" onClick={onCancel}>&times;</button>

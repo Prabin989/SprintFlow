@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
-import { FiCheckCircle, FiClock, FiAlertCircle } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiCheckCircle, FiClock, FiAlertCircle, FiList } from 'react-icons/fi';
 import Spinner from '../components/common/Spinner';
 
 function Dashboard() {
     const [tasks, setTasks] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchTasks = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/tasks');
-                if (!response.ok) throw new Error('Failed to fetch tasks');
+                const [tasksRes, categoriesRes] = await Promise.all([
+                    fetch('http://localhost:3000/api/tasks'),
+                    fetch('http://localhost:3000/api/categories')
+                ]);
 
-                const data = await response.json();
-                setTasks(data.tasks);
+                if (!tasksRes.ok) throw new Error('Failed to fetch tasks');
+                if (!categoriesRes.ok) throw new Error('Failed to fetch categories');
+
+                const tasksData = await tasksRes.json();
+                const categoriesData = await categoriesRes.json();
+
+                setTasks(tasksData.tasks);
+                setCategories(categoriesData.categories);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -22,7 +32,7 @@ function Dashboard() {
             }
         };
 
-        fetchTasks();
+        fetchData();
     }, []);
 
     if (isLoading) return <Spinner />;
@@ -85,15 +95,28 @@ function Dashboard() {
                         <p className="empty-state">No high priority tasks! You're all caught up.</p>
                     ) : (
                         <ul className="simple-task-list">
-                            {highPriorityTasks.map(task => (
-                                <li key={task.id} className="simple-task-item">
-                                    <div className="task-info">
-                                        <strong>{task.title}</strong>
-                                        <span className="task-date">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}</span>
-                                    </div>
-                                    <span className={`badge badge-${task.status}`}>{task.status.replace('-', ' ')}</span>
-                                </li>
-                            ))}
+                            {highPriorityTasks.map(task => {
+                                const category = categories.find(c => c.id === task.categoryId);
+                                return (
+                                    <Link to="/tasks" state={{ highlightTaskId: task.id }} key={task.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                        <li className="simple-task-item hoverable">
+                                            <div className="task-info">
+                                                <strong>{task.title}</strong>
+                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                    <span className="task-date">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}</span>
+                                                    {category && (
+                                                        <span className="badge" style={{ backgroundColor: 'white', color: 'var(--text-dark)', border: '1px solid var(--border-color)', fontSize: '0.65rem' }}>
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: category.color, marginRight: '4px', display: 'inline-block' }}></span>
+                                                            {category.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <span className={`badge badge-${task.status}`}>{task.status.replace('-', ' ')}</span>
+                                        </li>
+                                    </Link>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
@@ -101,8 +124,5 @@ function Dashboard() {
         </div>
     );
 }
-
-// Ensure FiList is imported
-import { FiList } from 'react-icons/fi';
 
 export default Dashboard;

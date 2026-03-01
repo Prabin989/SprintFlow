@@ -46,8 +46,8 @@ function CategoryForm({ category, onSave, onCancel }) {
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-overlay" onClick={onCancel}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2>{category ? 'Edit Category' : 'New Category'}</h2>
                     <button className="close-btn" onClick={onCancel}>&times;</button>
