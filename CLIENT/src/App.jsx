@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import Header from './components/layout/Header';
-import TaskBoard from './components/board/TaskBoard';
-import Spinner from './components/common/Spinner';
+import Header from './components/layout/Header.jsx';
+import TaskBoard from './components/board/TaskBoard.jsx';
+import Spinner from './components/common/Spinner.jsx';
 
 const API_URL = 'http://localhost:3000/tasks';
 

@@ -1,4 +1,4 @@
-import TaskColumn from './TaskColumn';
+import TaskColumn from './TaskColumn.jsx';
 
 function TaskBoard({ tasks }) {
     const pendingTasks = tasks.filter(t => t.status === 'pending');
